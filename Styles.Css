@@ -12,7 +12,7 @@ body {
     background-image: url(/assets/Fondo.jpg);
     background-size: cover;
     background-position: center;
-    height: 100vh;  
+    height: 100vh;
 }
 
 h1 {
@@ -25,7 +25,6 @@ h1 {
     text-align: center;
     font-family: "Bruno Ace", sans-serif;
 }
-
 
 
 .fecha{
@@ -42,7 +41,6 @@ h1 {
     width: 35%;
     margin-left: 20%;
     margin-top: 2%;
-    
 }
 
 
@@ -50,7 +48,6 @@ h1 {
     display: flex;
     flex-direction: column;
     width: 28%;
-    
 }
 
 .marca{
@@ -87,7 +84,7 @@ h1 {
     margin-left: 4%;
 }
 
-.aseg{
+.aseguradora {
     display: flex;
     flex-direction: column;
     width: 38%;
@@ -199,18 +196,36 @@ input {
     margin-bottom: 1px;
     text-align: center;
     font-size: 16px;
+    color: #f8f8f8; /* Aseguramos que el texto del input sea blanco */
 }
 
+/* Modificaciones aquí para el select */
 select {
-    background-color: #8a99ecf6;
+    background-color: #8a99ecf6; /* Mismo color de fondo que input */
     padding: 7px;
     border: 2px solid #1815e2;
     border-radius: 4px;
     margin-bottom: 1px;
     text-align: center;
     font-size: 16px;
+    color: #f8f8f8; /* **Importante: Color del texto del select cuando no está desplegado** */
+    /* Apariencia para que la flecha del select se vea mejor en algunos navegadores */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    /* Icono de flecha personalizado (opcional, para que se vea consistente) */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="%23f8f8f8"><polygon points="0,0 10,0 5,10"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 7px center;
+    background-size: 8px;
+    padding-right: 25px; /* Espacio para el icono de flecha */
 }
 
+/* IMPORTANTE: ESTO ES PARA LAS OPCIONES DEL SELECT CUANDO SE DESPLIEGAN */
+select option {
+    background-color: #8a99ecf6; /* Color de fondo de las opciones */
+    color: #f8f8f8; /* Color del texto de las opciones para que sea blanco */
+}
 
 
 input:disabled {
@@ -223,16 +238,172 @@ label {
     font-family: "Oxanium", sans-serif;
 }
 
+/* Contenedor del botón Agregar Item */
+.add-item-container {
+    text-align: center;
+    margin-top: 35px;
+    margin-bottom: 10px;
+    width: 100%;
+}
 
+/* Estilos para el botón "AGREGAR ITEM" */
+.add-item-button {
+    background-color: #56b366f6;
+    color: white;
+    padding: 06px 20px;
+    border-color: #1815e2;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+    font-family: "Oxanium", sans-serif;
+    transition: background-color 0.3s ease;
+}
 
-.add_button {
+.add-item-button:hover {
+    background-color: #61688d; /* Un tono más claro del azul */
+}
+
+/* Título de la lista de ítems */
+.lista-titulo {
     position: relative;
-    margin: 1%;
-    height: 70px;
-    left: 20%;
-    width: 70px;
-    border: 8px double #6d80b6e5;
-    border-radius: 280px;
+    width: 23%;
+    font-size: 25px;
+    top: 3%;
+    text-align: center;
+    font-family: "Bruno Ace", sans-serif;
+    margin-top: 5px;
+    margin-bottom: 30px;
+}
+
+/* Contenedor principal de la tabla */
+.table-container {
+    width: 50%; /* Este ancho es importante para que los porcentajes de columna sumen bien */
+    margin: 0 auto 50px auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 12px;
+}
+
+/* Estilos de la tabla */
+#itemsTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Estilos para los encabezados y celdas de la tabla */
+#itemsTable th, #itemsTable td {
+    padding: 7px;
+    border: 1px solid #1815e2;
+    text-align: left; /* Mantener texto de celda a la izquierda por defecto */
+    color: #f8f8f8;
+    border-color: #1815e2;
+    border-radius: 5px;
+}
+
+/* Estilos específicos para los encabezados de la tabla (Ajustando anchos de columna y Centrado) */
+#itemsTable thead th {
+    background-color: #6d80b6e5;
+    font-family: "Oxanium", sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    text-align: center; /* ¡NUEVO: Centrar el texto de los encabezados! */
+}
+
+/* --- AQUÍ ES DONDE AJUSTAS LOS ANCHOS DE CADA COLUMNA --- */
+/* Puedes cambiar los porcentajes. La suma de los porcentajes debe ser igual o menor al 100%
+   del ancho de la tabla (#itemsTable que está al 100% del .table-container). */
+
+#itemsTable thead th:nth-child(1) { /* Columna: Descripción (incluye icono eliminar) */
+    width: 40%; /* Ajusta este valor según la longitud típica de tu descripción y el espacio para el icono */
+}
+
+#itemsTable thead th:nth-child(2) { /* Columna: Cant */
+    width: 7%; /* Ajusta este valor */
+}
+
+#itemsTable thead th:nth-child(3) { /* Columna: DYM */
+    width: 7%; /* Ajusta este valor */
+}
+
+#itemsTable thead th:nth-child(4) { /* Columna: Estado */
+    width: 12%; /* Ajusta este valor */
+}
+
+#itemsTable thead th:nth-child(5) { /* Columna: Pint */
+    width: 7%; /* Ajusta este valor */
+}
+
+#itemsTable thead th:nth-child(6) { /* Columna: Dato */
+    width: 55%; /* Ajusta este valor */
+}
+
+/* Estilo para el contenedor del texto y el icono dentro de la celda de descripción */
+.description-cell-content {
+    display: flex;
+    justify-content: space-between; /* Espacio entre el texto y el icono */
+    align-items: center; /* Centrar verticalmente el texto y el icono */
+    gap: 8px; /* Reduje el gap un poco para ahorrar espacio en la celda */
+    width: 100%; /* Asegura que el contenido ocupe todo el ancho de la celda */
+}
+
+
+/* Estilos para filas impares en el cuerpo de la tabla (alternar colores) */
+#itemsTable tbody tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Efecto hover en las filas de la tabla */
+#itemsTable tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Estilos para el icono de eliminar fila (se creará con JS) */
+.delete-btn {
+    background-color: #f44336;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+
+.delete-icon:hover {
+    color: #ffffff; /* Texto blanco en hover */
+    background-color: #f44336; /* Fondo rojo en hover */
+}
+
+/* --- Ajuste para los botones existentes para que se vean bien debajo de la tabla --- */
+.img{
+    position: relative;
+    margin-top: 30px;
+    margin-bottom: 50px;
+}
+
+/* --- Nuevos estilos para Drag-and-Drop --- */
+
+/* Estilo para las filas arrastrables (la que se está arrastrando) */
+#itemsTable tbody tr.dragging {
+    opacity: 0.6;
+    border: 2px dashed #4CAF50;
+    background-color: rgba(76, 175, 80, 0.3);
+}
+
+/* Estilo para el área donde se puede soltar la fila (solo visual) */
+#itemsTable tbody tr.drop-target {
+    border-top: 2px solid #4CAF50;
+    background-color: rgba(76, 175, 80, 0.1);
+}
+
+/* Cursor para las filas que son arrastrables */
+#itemsTable tbody tr {
+    cursor: grab;
+}
+
+#itemsTable tbody tr:active {
+    cursor: grabbing;
 }
 
 
@@ -293,7 +464,7 @@ footer{
         position: relative;
         left: 6%;
     }
-   
+    
     .fecha input {
         position: relative;
         width: 260%;
@@ -326,7 +497,7 @@ footer{
         margin-top: 12%;
         
     }
- 
+    
     .cont_izq {
         width: 94%;
     }
@@ -348,14 +519,54 @@ footer{
     .img{
     margin: 5%;
     }
+
+    /* --- NUEVOS ESTILOS RESPONSIVOS PARA LA TABLA DENTRO DE LA MEDIA QUERY --- */
+    /* Ajusta el ancho del contenedor de la tabla para que ocupe más espacio en pantallas pequeñas */
+    .table-container {
+        width: 95%; /* La tabla ocupará casi todo el ancho disponible */
+        margin-left: 2.5%;
+        margin-right: 2.5%;
+    }
+
+    /* Reajustar los anchos de las columnas para pantallas pequeñas */
+    #itemsTable thead th:nth-child(1) { /* Columna: Descripción */
+        width: 40%; /* Podría necesitar más espacio para la descripción y el icono */
+    }
+
+    #itemsTable thead th:nth-child(2) { /* Columna: Cant */
+        width: 10%; /* Un poco más de espacio */
+    }
+
+    #itemsTable thead th:nth-child(3) { /* Columna: DYM */
+        width: 10%; /* Un poco más de espacio */
+    }
+
+    #itemsTable thead th:nth-child(4) { /* Columna: Estado */
+        width: 15%; /* Ajusta según el contenido */
+    }
+
+    #itemsTable thead th:nth-child(5) { /* Columna: Pint */
+        width: 10%; /* Un poco más de espacio */
+    }
+
+    #itemsTable thead th:nth-child(6) { /* Columna: Dato */
+        width: 25%; /* Ajusta según el contenido, quizás necesite menos si es muy corto */
+    }
+
+    /* Opcional: Aumentar el tamaño del ícono de eliminar un poco en móviles para facilitar el toque */
+    .delete-icon {
+        font-size: 1.3em; /* Un poco más grande para facilitar el toque en pantallas táctiles */
+    }
+    /* --- FIN DE ESTILOS RESPONSIVOS PARA LA TABLA --- */
+
 }
     
-    footer{
-        display: flex;
-        position: relative;
-        left: 5%;
-        top: 8%;
-        width: 30%;
-        font-size: 8px;
+footer{
+    display: flex;
+    position: relative;
+    left: 5%;
+    top: 8%;
+    width: 30%;
+    font-size: 8px;
         
-    }
+}

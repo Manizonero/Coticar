@@ -29,8 +29,7 @@
                 <input type="text" id="linea" name="linea">
             </div>
         </div>
-
-        <div class="datmed">
+        <div class="datmed"> 
             <div class="modelo">
                 <label for="modelo">MODELO</label>
                 <input type="text" id="modelo" name="modelo">
@@ -39,15 +38,14 @@
                 <label for="color">COLOR</label>
                 <input type="text" id="color" name="color">
             </div>
-            <div class="aseg">
+            <div class="aseguradora">
                 <label for="aseguradora">ASEGURADORA</label>
                 <input type="text" id="aseguradora" name="aseguradora">
             </div>
         </div>
-
         <div class="datinf">    
         <div class="cilindraje">
-            <label for="chasis">CILINDRAJE</label>
+            <label for="cilindraje">CILINDRAJE</label>
             <input type="text" id="cilindraje" name="cilindraje">
         </div>
         <div class="chasis">
@@ -56,417 +54,80 @@
         </div>
     </div>
 
-<h2>DATOS</h2>
+    <h2>DATOS</h2>
 
 
-<div class="contdat">
-    <div class="cont_izq">
-
-        <div class="desc">
-            <label for="descrip"></label>
-            <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
+    <div class="contdat">
+        <div class="cont_izq">
+            <div class="desc">
+                <label for="descrip"></label>
+                <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
+            </div>
+            <div class="cant">
+                <label for="cant"></label>
+                <input type="text" id="cant" name="cant" placeholder="CANT">
+            </div>
+            <div class="dym">
+                <label for="dym"></label>
+                <select id="dym" name="dym">
+                    <option value="">DYM</option> <option value="Si">Si</option>
+                    <option value="No">No</option>
+                </select>
+            </div>         
         </div>
-
-        <div class="cant">
-            <label for="cant"></label>
-            <input type="text" id="cant" name="cant" placeholder="CANT">
-        </div>
-
-        <div class="dym">
-            <label for="dym"></label>
-            <input type="text" id="dym" name="dym" placeholder="DYM">
-        </div>        
         
+        <div class="cont_der">
+            <div class="estado">
+                <label for="estado"></label>
+                <select id="estado" name="estado">
+                    <option value="">ESTADO</option> <option value="Cambio">Cambio</option>
+                    <option value="Fuerte">Fuerte</option>
+                    <option value="Medio">Medio</option>
+                    <option value="Leve">Leve</option>
+                </select>
+            </div>
+            <div class="pint">
+                <label for="pint"></label>
+                <select id="pint" name="pint">
+                    <option value="">PINT</option> <option value="Si">Si</option>
+                    <option value="No">No</option>
+                </select>
+            </div>
+            <div class="dat">
+                <label for="dat"></label>
+                <input type="text" id="dat" name="dat" placeholder="DATO">
+            </div>   
+        </div>
     </div>
-    
-    <div class="cont_der">
 
-        <div class="estado">
-            <label for="estado"></label>
-            <input type="text" id="estado" name="estado" placeholder="ESTADO">
-        </div>
-
-        <div class="pint">
-            <label for="pint"></label>
-            <input type="text" id="pint" name="pint" placeholder="PINT">   
-        </div>
-
-        <div class="dat">
-            <label for="dat"></label>
-            <input type="text" id="dat" name="dat" placeholder="DATO">
-        </div>   
+    <div class="add-item-container">
+        <button id="addItemBtn" class="add-item-button">Agregar</button>
     </div>
-     
-</div>
 
-<div class="contdat">
-    <div class="cont_izq">
-
-        <div class="desc">
-            <label for="descrip"></label>
-            <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
-        </div>
-
-        <div class="cant">
-            <label for="cant"></label>
-            <input type="text" id="cant" name="cant" placeholder="CANT">
-        </div>
-
-        <div class="dym">
-            <label for="dym"></label>
-            <input type="text" id="dym" name="dym" placeholder="DYM">
-        </div>        
-        
+    <h2 class="lista-titulo">LISTA</h2>
+    <div class="table-container">
+        <table id="itemsTable">
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th>Cant</th>
+                    <th>DYM</th>
+                    <th>Estado</th>
+                    <th>Pint</th>
+                    <th>Dato</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
     </div>
-    
-    <div class="cont_der">
 
-        <div class="estado">
-            <label for="estado"></label>
-            <input type="text" id="estado" name="estado" placeholder="ESTADO">
-        </div>
-
-        <div class="pint">
-            <label for="pint"></label>
-            <input type="text" id="pint" name="pint" placeholder="PINT">   
-        </div>
-
-        <div class="dat">
-            <label for="dat"></label>
-            <input type="text" id="dat" name="dat" placeholder="DATO">
-        </div>   
+    <div class="img">
+        <img class="cecxel" id="cecxel" src="/assets/ecxel.png" alt="">
+        <img class="crearex" id="crearex" src="/assets/suzu.png" alt="">
     </div>
-     
-</div>
 
-<div class="contdat">
-    <div class="cont_izq">
-
-        <div class="desc">
-            <label for="descrip"></label>
-            <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
-        </div>
-
-        <div class="cant">
-            <label for="cant"></label>
-            <input type="text" id="cant" name="cant" placeholder="CANT">
-        </div>
-
-        <div class="dym">
-            <label for="dym"></label>
-            <input type="text" id="dym" name="dym" placeholder="DYM">
-        </div>        
-        
-    </div>
-    
-    <div class="cont_der">
-
-        <div class="estado">
-            <label for="estado"></label>
-            <input type="text" id="estado" name="estado" placeholder="ESTADO">
-        </div>
-
-        <div class="pint">
-            <label for="pint"></label>
-            <input type="text" id="pint" name="pint" placeholder="PINT">   
-        </div>
-
-        <div class="dat">
-            <label for="dat"></label>
-            <input type="text" id="dat" name="dat" placeholder="DATO">
-        </div>   
-    </div>
-     
-</div>
-
-<div class="contdat">
-    <div class="cont_izq">
-
-        <div class="desc">
-            <label for="descrip"></label>
-            <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
-        </div>
-
-        <div class="cant">
-            <label for="cant"></label>
-            <input type="text" id="cant" name="cant" placeholder="CANT">
-        </div>
-
-        <div class="dym">
-            <label for="dym"></label>
-            <input type="text" id="dym" name="dym" placeholder="DYM">
-        </div>        
-        
-    </div>
-    
-    <div class="cont_der">
-
-        <div class="estado">
-            <label for="estado"></label>
-            <input type="text" id="estado" name="estado" placeholder="ESTADO">
-        </div>
-
-        <div class="pint">
-            <label for="pint"></label>
-            <input type="text" id="pint" name="pint" placeholder="PINT">   
-        </div>
-
-        <div class="dat">
-            <label for="dat"></label>
-            <input type="text" id="dat" name="dat" placeholder="DATO">
-        </div>   
-    </div>
-     
-</div>
-
-<div class="contdat">
-    <div class="cont_izq">
-
-        <div class="desc">
-            <label for="descrip"></label>
-            <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
-        </div>
-
-        <div class="cant">
-            <label for="cant"></label>
-            <input type="text" id="cant" name="cant" placeholder="CANT">
-        </div>
-
-        <div class="dym">
-            <label for="dym"></label>
-            <input type="text" id="dym" name="dym" placeholder="DYM">
-        </div>        
-        
-    </div>
-    
-    <div class="cont_der">
-
-        <div class="estado">
-            <label for="estado"></label>
-            <input type="text" id="estado" name="estado" placeholder="ESTADO">
-        </div>
-
-        <div class="pint">
-            <label for="pint"></label>
-            <input type="text" id="pint" name="pint" placeholder="PINT">   
-        </div>
-
-        <div class="dat">
-            <label for="dat"></label>
-            <input type="text" id="dat" name="dat" placeholder="DATO">
-        </div>   
-    </div>
-     
-</div>
-
-<div class="contdat">
-    <div class="cont_izq">
-
-        <div class="desc">
-            <label for="descrip"></label>
-            <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
-        </div>
-
-        <div class="cant">
-            <label for="cant"></label>
-            <input type="text" id="cant" name="cant" placeholder="CANT">
-        </div>
-
-        <div class="dym">
-            <label for="dym"></label>
-            <input type="text" id="dym" name="dym" placeholder="DYM">
-        </div>        
-        
-    </div>
-    
-    <div class="cont_der">
-
-        <div class="estado">
-            <label for="estado"></label>
-            <input type="text" id="estado" name="estado" placeholder="ESTADO">
-        </div>
-
-        <div class="pint">
-            <label for="pint"></label>
-            <input type="text" id="pint" name="pint" placeholder="PINT">   
-        </div>
-
-        <div class="dat">
-            <label for="dat"></label>
-            <input type="text" id="dat" name="dat" placeholder="DATO">
-        </div>   
-    </div>
-     
-</div>
-
-<div class="contdat">
-    <div class="cont_izq">
-
-        <div class="desc">
-            <label for="descrip"></label>
-            <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
-        </div>
-
-        <div class="cant">
-            <label for="cant"></label>
-            <input type="text" id="cant" name="cant" placeholder="CANT">
-        </div>
-
-        <div class="dym">
-            <label for="dym"></label>
-            <input type="text" id="dym" name="dym" placeholder="DYM">
-        </div>        
-        
-    </div>
-    
-    <div class="cont_der">
-
-        <div class="estado">
-            <label for="estado"></label>
-            <input type="text" id="estado" name="estado" placeholder="ESTADO">
-        </div>
-
-        <div class="pint">
-            <label for="pint"></label>
-            <input type="text" id="pint" name="pint" placeholder="PINT">   
-        </div>
-
-        <div class="dat">
-            <label for="dat"></label>
-            <input type="text" id="dat" name="dat" placeholder="DATO">
-        </div>   
-    </div>
-     
-</div>
-
-<div class="contdat">
-    <div class="cont_izq">
-
-        <div class="desc">
-            <label for="descrip"></label>
-            <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
-        </div>
-
-        <div class="cant">
-            <label for="cant"></label>
-            <input type="text" id="cant" name="cant" placeholder="CANT">
-        </div>
-
-        <div class="dym">
-            <label for="dym"></label>
-            <input type="text" id="dym" name="dym" placeholder="DYM">
-        </div>        
-        
-    </div>
-    
-    <div class="cont_der">
-
-        <div class="estado">
-            <label for="estado"></label>
-            <input type="text" id="estado" name="estado" placeholder="ESTADO">
-        </div>
-
-        <div class="pint">
-            <label for="pint"></label>
-            <input type="text" id="pint" name="pint" placeholder="PINT">   
-        </div>
-
-        <div class="dat">
-            <label for="dat"></label>
-            <input type="text" id="dat" name="dat" placeholder="DATO">
-        </div>   
-    </div>
-     
-</div>
-
-<div class="contdat">
-    <div class="cont_izq">
-
-        <div class="desc">
-            <label for="descrip"></label>
-            <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
-        </div>
-
-        <div class="cant">
-            <label for="cant"></label>
-            <input type="text" id="cant" name="cant" placeholder="CANT">
-        </div>
-
-        <div class="dym">
-            <label for="dym"></label>
-            <input type="text" id="dym" name="dym" placeholder="DYM">
-        </div>        
-        
-    </div>
-    
-    <div class="cont_der">
-
-        <div class="estado">
-            <label for="estado"></label>
-            <input type="text" id="estado" name="estado" placeholder="ESTADO">
-        </div>
-
-        <div class="pint">
-            <label for="pint"></label>
-            <input type="text" id="pint" name="pint" placeholder="PINT">   
-        </div>
-
-        <div class="dat">
-            <label for="dat"></label>
-            <input type="text" id="dat" name="dat" placeholder="DATO">
-        </div>   
-    </div>
-     
-</div>
-
-<div class="contdat">
-    <div class="cont_izq">
-
-        <div class="desc">
-            <label for="descrip"></label>
-            <input type="text" id="descrip" name="descrip" placeholder="DESCRIPCION">
-        </div>
-
-        <div class="cant">
-            <label for="cant"></label>
-            <input type="text" id="cant" name="cant" placeholder="CANT">
-        </div>
-
-        <div class="dym">
-            <label for="dym"></label>
-            <input type="text" id="dym" name="dym" placeholder="DYM">
-        </div>        
-        
-    </div>
-    
-    <div class="cont_der">
-
-        <div class="estado">
-            <label for="estado"></label>
-            <input type="text" id="estado" name="estado" placeholder="ESTADO">
-        </div>
-
-        <div class="pint">
-            <label for="pint"></label>
-            <input type="text" id="pint" name="pint" placeholder="PINT">   
-        </div>
-
-        <div class="dat">
-            <label for="dat"></label>
-            <input type="text" id="dat" name="dat" placeholder="DATO">
-        </div>   
-    </div>
-     
-</div>
-
-
-<div class="img">
-    <img class="add_button" id="add_button" src="/assets/mas.png" alt="">
-    <img class="cecxel" id="cecxel" src="/assets/ecxel.png" alt="">
-    <img class="crearex" id="crearex" src="/assets/suzu.png" alt="">
-</div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 <footer> By JHONATAN BUSTOS OROZCO™</footer>
 </html>

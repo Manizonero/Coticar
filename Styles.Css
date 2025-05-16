@@ -248,7 +248,7 @@ label {
 
 /* Estilos para el botón "AGREGAR ITEM" */
 .add-item-button {
-    background-color: #56b366f6;
+    background-color: #7e85ddf6;
     color: white;
     padding: 06px 20px;
     border-color: #1815e2;
@@ -266,9 +266,9 @@ label {
 /* Título de la lista de ítems */
 .lista-titulo {
     position: relative;
-    width: 23%;
-    font-size: 25px;
-    top: 3%;
+    width: 63%;
+    font-size: 20px;
+    top: 1%;
     text-align: center;
     font-family: "Bruno Ace", sans-serif;
     margin-top: 5px;
@@ -350,7 +350,7 @@ label {
 
 /* Estilos para filas impares en el cuerpo de la tabla (alternar colores) */
 #itemsTable tbody tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(75, 72, 72, 0.4);
 }
 
 /* Efecto hover en las filas de la tabla */
@@ -387,13 +387,13 @@ label {
 /* Estilo para las filas arrastrables (la que se está arrastrando) */
 #itemsTable tbody tr.dragging {
     opacity: 0.6;
-    border: 2px dashed #4CAF50;
-    background-color: rgba(76, 175, 80, 0.3);
+    border: 2px dashed #acb6d1;
+    background-color: rgb(211, 207, 235);
 }
 
 /* Estilo para el área donde se puede soltar la fila (solo visual) */
 #itemsTable tbody tr.drop-target {
-    border-top: 2px solid #4CAF50;
+    border-top: 2px solid #3c425f;
     background-color: rgba(76, 175, 80, 0.1);
 }
 
@@ -404,6 +404,11 @@ label {
 
 #itemsTable tbody tr:active {
     cursor: grabbing;
+}
+.copy-button-container {
+    text-align: center;
+    margin-top: 20px; /* Ajusta el margen según necesites */
+    margin-bottom: 50px;
 }
 
 

@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Variable para almacenar la fila que se está arrastrando
     let draggedRow = null;
+    let initialY = 0; // Para el seguimiento del toque inicial
+    let currentDragTarget = null; // Para la fila sobre la que se arrastra en móvil
 
     // Función para renderizar la tabla desde el array quoteItems
     const renderTable = () => {
@@ -26,13 +28,18 @@ document.addEventListener('DOMContentLoaded', () => {
             newRow.dataset.index = index; // Guardar el índice en la fila para fácil referencia
             newRow.draggable = true; // HACER LA FILA ARRASTRABLE
 
-            // Añadir manejadores de eventos para Drag & Drop a cada fila
+            // Añadir manejadores de eventos para Drag & Drop (RATÓN)
             newRow.addEventListener('dragstart', handleDragStart);
             newRow.addEventListener('dragover', handleDragOver);
             newRow.addEventListener('dragleave', handleDragLeave);
             newRow.addEventListener('drop', handleDrop);
             newRow.addEventListener('dragend', handleDragEnd);
 
+            // --- INICIO: Añadir manejadores de eventos para Drag & Drop (TÁCTIL) ---
+            newRow.addEventListener('touchstart', handleTouchStart, { passive: false }); // { passive: false } es crucial para preventDefault
+            newRow.addEventListener('touchmove', handleTouchMove, { passive: false });
+            newRow.addEventListener('touchend', handleTouchEnd);
+            // --- FIN: Añadir manejadores de eventos para Drag & Drop (TÁCTIL) ---
 
             // Insertar celdas (<td>) en la fila con los datos
             newRow.insertCell().textContent = item.descrip;
@@ -56,15 +63,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    // --- Funciones de Drag & Drop ---
+    // --- Funciones de Drag & Drop (RATÓN) ---
 
     function handleDragStart(e) {
         draggedRow = this; // 'this' se refiere a la fila que se está arrastrando
         e.dataTransfer.effectAllowed = 'move'; // Define el tipo de arrastre
-        // Almacenar el HTML de la fila en dataTransfer. Esto es útil para otras áreas,
-        // pero principalmente necesitamos la referencia a la fila y su índice.
         e.dataTransfer.setData('text/html', this.outerHTML);
-        // Retrasar la adición de la clase 'dragging' para que no afecte la imagen fantasma del arrastre
         setTimeout(() => {
             this.classList.add('dragging');
         }, 0);
@@ -73,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleDragOver(e) {
         e.preventDefault(); // Permite soltar el elemento (por defecto, no se permite)
         e.dataTransfer.dropEffect = 'move'; // Cambia el cursor a 'move'
-        // Si no es la misma fila que se está arrastrando, añadir clase para retroalimentación visual
         if (this !== draggedRow) {
             this.classList.add('drop-target');
         }
@@ -114,7 +117,88 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedRow = null; // Limpiar la referencia a la fila arrastrada
     }
 
-    // --- Fin de Funciones de Drag & Drop ---
+    // --- FIN: Funciones de Drag & Drop (RATÓN) ---
+
+    // --- INICIO: Funciones de Drag & Drop (TÁCTIL) ---
+
+    function handleTouchStart(e) {
+        // Solo si es un toque con un dedo
+        if (e.touches.length === 1) {
+            draggedRow = this;
+            initialY = e.touches[0].clientY;
+            // Prevenir el desplazamiento por defecto para iniciar el arrastre
+            e.preventDefault(); 
+            // Añadir clase 'dragging' inmediatamente para retroalimentación visual táctil
+            this.classList.add('dragging');
+        }
+    }
+
+    function handleTouchMove(e) {
+        if (!draggedRow) return;
+
+        e.preventDefault(); // Prevenir el desplazamiento de la página mientras arrastras
+
+        const touchY = e.touches[0].clientY;
+        // Calcular la posición del elemento sobre el que estamos
+        const targetElement = document.elementFromPoint(e.touches[0].clientX, touchY);
+
+        let newDropTarget = null;
+        // Buscar la fila (<tr>) más cercana que sea un objetivo válido
+        if (targetElement) {
+            newDropTarget = targetElement.closest('tr');
+            // Asegurarse de que sea una fila de la tabla y no la fila que estamos arrastrando
+            if (newDropTarget && newDropTarget.closest('#itemsTable tbody') && newDropTarget !== draggedRow) {
+                // Si cambiamos de objetivo, limpiar el anterior
+                if (currentDragTarget && currentDragTarget !== newDropTarget) {
+                    currentDragTarget.classList.remove('drop-target');
+                }
+                newDropTarget.classList.add('drop-target');
+                currentDragTarget = newDropTarget;
+            } else {
+                // Si no hay un objetivo válido, limpiar cualquier drop-target existente
+                if (currentDragTarget) {
+                    currentDragTarget.classList.remove('drop-target');
+                    currentDragTarget = null;
+                }
+            }
+        }
+        
+        // Opcional: Para mover visualmente la fila arrastrada (simulación de la imagen fantasma)
+        // Puedes usar translate Y para dar una sensación de arrastre
+        // draggedRow.style.transform = `translateY(${touchY - initialY}px)`;
+        // draggedRow.style.position = 'relative'; // Necesario para transform
+    }
+
+    function handleTouchEnd() {
+        if (!draggedRow) return;
+
+        // Limpiar el estilo de transformación si se aplicó
+        // draggedRow.style.transform = '';
+        // draggedRow.style.position = '';
+
+        draggedRow.classList.remove('dragging'); // Quitar clase de arrastre
+
+        if (currentDragTarget && currentDragTarget !== draggedRow) {
+            // Si hay un objetivo válido donde soltar
+            const draggedIndex = parseInt(draggedRow.dataset.index);
+            const targetIndex = parseInt(currentDragTarget.dataset.index);
+
+            const [movedItem] = quoteItems.splice(draggedIndex, 1);
+            quoteItems.splice(targetIndex, 0, movedItem);
+            
+            renderTable(); // Re-renderizar la tabla para actualizar el orden y los event listeners
+        }
+
+        // Limpiar las referencias y clases
+        if (currentDragTarget) {
+            currentDragTarget.classList.remove('drop-target');
+        }
+        draggedRow = null;
+        currentDragTarget = null;
+        initialY = 0;
+    }
+
+    // --- FIN: Funciones de Drag & Drop (TÁCTIL) ---
 
 
     // Event listener para el botón "AGREGAR ITEM"

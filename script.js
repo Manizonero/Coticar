@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Variable para almacenar la fila que se está arrastrando
     let draggedRow = null;
     let initialY = 0; // Para el seguimiento del toque inicial
+    let initialX = 0; // Para el seguimiento del toque inicial (añadido para umbral)
+    let isDragging = false; // Bandera para indicar si el arrastre se ha activado
+    const DRAG_THRESHOLD = 10; // Umbral de píxeles para iniciar el arrastre (moviles)
     let currentDragTarget = null; // Para la fila sobre la que se arrastra en móvil
 
     // Función para renderizar la tabla desde el array quoteItems
@@ -36,10 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
             newRow.addEventListener('dragend', handleDragEnd);
 
             // --- INICIO: Añadir manejadores de eventos para Drag & Drop (TÁCTIL) ---
-            newRow.addEventListener('touchstart', handleTouchStart, { passive: false }); // { passive: false } es crucial para preventDefault
+            // { passive: false } es crucial para preventDefault en touchstart/move
+            newRow.addEventListener('touchstart', handleTouchStart, { passive: false }); 
             newRow.addEventListener('touchmove', handleTouchMove, { passive: false });
             newRow.addEventListener('touchend', handleTouchEnd);
-            // --- FIN: Añadir manejadores de eventos para Drag & Drop (TÁCTIL) ---
+            newRow.addEventListener('touchcancel', handleTouchEnd); // Por si el toque se interrumpe
+            // --- FIN: Añadir manejadores de eventos para Drag & Drop (TÁctIL) ---
 
             // Insertar celdas (<td>) en la fila con los datos
             newRow.insertCell().textContent = item.descrip;
@@ -119,54 +124,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FIN: Funciones de Drag & Drop (RATÓN) ---
 
-    // --- INICIO: Funciones de Drag & Drop (TÁCTIL) ---
+    // --- INICIO: Funciones de Drag & Drop (TÁCTIL - con umbral de movimiento) ---
 
     function handleTouchStart(e) {
         // Solo si es un toque con un dedo
         if (e.touches.length === 1) {
             draggedRow = this;
             initialY = e.touches[0].clientY;
-            // Prevenir el desplazamiento por defecto para iniciar el arrastre
-            e.preventDefault(); 
-            // Añadir clase 'dragging' inmediatamente para retroalimentación visual táctil
-            this.classList.add('dragging');
+            initialX = e.touches[0].clientX; // Almacenar X también
+            isDragging = false; // Resetear la bandera de arrastre
+            // No prevenir el default aquí aún, lo haremos en touchmove si se cumple el umbral
         }
     }
 
     function handleTouchMove(e) {
         if (!draggedRow) return;
 
-        e.preventDefault(); // Prevenir el desplazamiento de la página mientras arrastras
+        const currentY = e.touches[0].clientY;
+        const currentX = e.touches[0].clientX;
 
-        const touchY = e.touches[0].clientY;
-        // Calcular la posición del elemento sobre el que estamos
-        const targetElement = document.elementFromPoint(e.touches[0].clientX, touchY);
+        // Calcular la distancia movida
+        const deltaY = Math.abs(currentY - initialY);
+        const deltaX = Math.abs(currentX - initialX);
+        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); // Distancia euclidiana
 
-        let newDropTarget = null;
-        // Buscar la fila (<tr>) más cercana que sea un objetivo válido
-        if (targetElement) {
-            newDropTarget = targetElement.closest('tr');
-            // Asegurarse de que sea una fila de la tabla y no la fila que estamos arrastrando
-            if (newDropTarget && newDropTarget.closest('#itemsTable tbody') && newDropTarget !== draggedRow) {
-                // Si cambiamos de objetivo, limpiar el anterior
-                if (currentDragTarget && currentDragTarget !== newDropTarget) {
-                    currentDragTarget.classList.remove('drop-target');
-                }
-                newDropTarget.classList.add('drop-target');
-                currentDragTarget = newDropTarget;
-            } else {
-                // Si no hay un objetivo válido, limpiar cualquier drop-target existente
-                if (currentDragTarget) {
-                    currentDragTarget.classList.remove('drop-target');
-                    currentDragTarget = null;
+        // Si la distancia es mayor que el umbral y no estamos arrastrando aún
+        if (distance > DRAG_THRESHOLD && !isDragging) {
+            isDragging = true; // Activar el modo arrastre
+            draggedRow.classList.add('dragging'); // Añadir clase visual de arrastre
+            e.preventDefault(); // Prevenir el desplazamiento una vez que el arrastre se activa
+        }
+
+        if (isDragging) {
+            e.preventDefault(); // Seguir previniendo el desplazamiento
+            const touchY = e.touches[0].clientY;
+            const targetElement = document.elementFromPoint(e.touches[0].clientX, touchY);
+
+            let newDropTarget = null;
+            if (targetElement) {
+                newDropTarget = targetElement.closest('tr');
+                if (newDropTarget && newDropTarget.closest('#itemsTable tbody') && newDropTarget !== draggedRow) {
+                    if (currentDragTarget && currentDragTarget !== newDropTarget) {
+                        currentDragTarget.classList.remove('drop-target');
+                    }
+                    newDropTarget.classList.add('drop-target');
+                    currentDragTarget = newDropTarget;
+                } else {
+                    if (currentDragTarget) {
+                        currentDragTarget.classList.remove('drop-target');
+                        currentDragTarget = null;
+                    }
                 }
             }
+            // Opcional: para mover visualmente la fila arrastrada
+            // draggedRow.style.transform = `translateY(${currentY - initialY}px)`;
         }
-        
-        // Opcional: Para mover visualmente la fila arrastrada (simulación de la imagen fantasma)
-        // Puedes usar translate Y para dar una sensación de arrastre
-        // draggedRow.style.transform = `translateY(${touchY - initialY}px)`;
-        // draggedRow.style.position = 'relative'; // Necesario para transform
     }
 
     function handleTouchEnd() {
@@ -174,12 +186,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Limpiar el estilo de transformación si se aplicó
         // draggedRow.style.transform = '';
-        // draggedRow.style.position = '';
 
         draggedRow.classList.remove('dragging'); // Quitar clase de arrastre
 
-        if (currentDragTarget && currentDragTarget !== draggedRow) {
-            // Si hay un objetivo válido donde soltar
+        if (isDragging && currentDragTarget && currentDragTarget !== draggedRow) {
+            // Si estábamos arrastrando y hay un objetivo válido donde soltar
             const draggedIndex = parseInt(draggedRow.dataset.index);
             const targetIndex = parseInt(currentDragTarget.dataset.index);
 
@@ -189,13 +200,15 @@ document.addEventListener('DOMContentLoaded', () => {
             renderTable(); // Re-renderizar la tabla para actualizar el orden y los event listeners
         }
 
-        // Limpiar las referencias y clases
+        // Limpiar las referencias y banderas
         if (currentDragTarget) {
             currentDragTarget.classList.remove('drop-target');
         }
         draggedRow = null;
         currentDragTarget = null;
         initialY = 0;
+        initialX = 0;
+        isDragging = false;
     }
 
     // --- FIN: Funciones de Drag & Drop (TÁCTIL) ---
@@ -317,7 +330,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Ahora iteramos sobre el array quoteItems para llenar el Excel
             quoteItems.forEach((item) => {
-                worksheet.getCell(`A${startRow}`).value = item.descrip.toUpperCase();
+                worksheet.getCell(`A${startRow}`).value = item.descrip;
                 worksheet.getCell(`B${startRow}`).value = item.cant;
 
                 startRow++;
@@ -364,4 +377,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
     marcaInput.addEventListener('input', toggleFields);
     toggleFields(); // Llamar al inicio para establecer el estado inicial
+
+
+    // --- INICIO: Nueva función para copiar datos de la tabla ---
+
+    /**
+     * Copia los datos de la tabla (excluyendo la columna de acciones) al portapapeles
+     * en un formato de texto simple (tabulado o CSV).
+     */
+    const copyTableData = () => {
+        if (quoteItems.length === 0) {
+            alert('No hay ítems en la tabla para copiar.');
+            return;
+        }
+
+        let clipboardText = '';
+
+        // Obtener los encabezados de la tabla (excepto la última columna de acciones si existe)
+        const headers = Array.from(document.querySelectorAll('#itemsTable thead th'))
+                             .slice(0, -1) // Excluir la última columna (acciones)
+                             .map(th => th.textContent.trim());
+        clipboardText += headers.join('\t') + '\n'; // Encabezados separados por tabulaciones
+
+        // Recorrer los datos de quoteItems
+        quoteItems.forEach(item => {
+            // Asegurarse de que el orden de las propiedades coincide con los encabezados
+            const rowData = [
+                item.descrip,
+                item.cant,
+                item.dym,
+                item.estado,
+                item.pint,
+                item.dat
+            ];
+            clipboardText += rowData.join('\t') + '\n'; // Filas separadas por tabulaciones
+        });
+
+        // Intentar copiar al portapapeles
+        navigator.clipboard.writeText(clipboardText)
+            .then(() => {
+                alert('Datos de la tabla copiados al portapapeles.');
+            })
+            .catch(err => {
+                console.error('Error al copiar al portapapeles:', err);
+                alert('No se pudieron copiar los datos de la tabla. Por favor, inténtalo manualmente.');
+            });
+    };
+
+
 });

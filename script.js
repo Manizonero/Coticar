@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let initialX = 0; // Para el seguimiento del toque inicial (añadido para umbral)
     let isDragging = false; // Bandera para indicar si el arrastre se ha activado
     const DRAG_THRESHOLD = 10; // Umbral de píxeles para iniciar el arrastre (moviles)
+    const SCROLL_THRESHOLD_MULTIPLIER = 2; // Cuánto más vertical debe ser el movimiento para considerarse scroll
     let currentDragTarget = null; // Para la fila sobre la que se arrastra en móvil
 
     // Función para renderizar la tabla desde el array quoteItems
@@ -39,9 +40,9 @@ document.addEventListener('DOMContentLoaded', () => {
             newRow.addEventListener('dragend', handleDragEnd);
 
             // --- INICIO: Añadir manejadores de eventos para Drag & Drop (TÁCTIL) ---
-            // { passive: false } es crucial para preventDefault en touchstart/move
-            newRow.addEventListener('touchstart', handleTouchStart, { passive: false }); 
-            newRow.addEventListener('touchmove', handleTouchMove, { passive: false });
+            // { passive: false } es crucial para preventDefault en touchmove, pero no en touchstart
+            newRow.addEventListener('touchstart', handleTouchStart, { passive: true }); // passive: true para permitir scroll inicial
+            newRow.addEventListener('touchmove', handleTouchMove, { passive: false }); // passive: false para permitir preventDefault
             newRow.addEventListener('touchend', handleTouchEnd);
             newRow.addEventListener('touchcancel', handleTouchEnd); // Por si el toque se interrumpe
             // --- FIN: Añadir manejadores de eventos para Drag & Drop (TÁctIL) ---
@@ -124,16 +125,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- FIN: Funciones de Drag & Drop (RATÓN) ---
 
-    // --- INICIO: Funciones de Drag & Drop (TÁCTIL - con umbral de movimiento) ---
+    // --- INICIO: Funciones de Drag & Drop (TÁCTIL - con umbral de movimiento mejorado) ---
 
     function handleTouchStart(e) {
-        // Solo si es un toque con un dedo
         if (e.touches.length === 1) {
             draggedRow = this;
             initialY = e.touches[0].clientY;
-            initialX = e.touches[0].clientX; // Almacenar X también
-            isDragging = false; // Resetear la bandera de arrastre
-            // No prevenir el default aquí aún, lo haremos en touchmove si se cumple el umbral
+            initialX = e.touches[0].clientX;
+            isDragging = false; // Resetear la bandera
+            currentDragTarget = null; // Limpiar objetivo al inicio
+            
+            // NO llamar a e.preventDefault() aquí. Permitimos el scroll inicial.
         }
     }
 
@@ -143,20 +145,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentY = e.touches[0].clientY;
         const currentX = e.touches[0].clientX;
 
-        // Calcular la distancia movida
         const deltaY = Math.abs(currentY - initialY);
         const deltaX = Math.abs(currentX - initialX);
-        const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY); // Distancia euclidiana
 
-        // Si la distancia es mayor que el umbral y no estamos arrastrando aún
-        if (distance > DRAG_THRESHOLD && !isDragging) {
-            isDragging = true; // Activar el modo arrastre
-            draggedRow.classList.add('dragging'); // Añadir clase visual de arrastre
-            e.preventDefault(); // Prevenir el desplazamiento una vez que el arrastre se activa
+        // Si aún no estamos arrastrando
+        if (!isDragging) {
+            // Si el movimiento vertical es mucho mayor que el horizontal, probablemente es un scroll
+            if (deltaY > DRAG_THRESHOLD && deltaY > deltaX * SCROLL_THRESHOLD_MULTIPLIER) {
+                // Es un scroll, no un arrastre. Abortar el posible arrastre.
+                handleTouchEnd(); // Llama a touchEnd para limpiar las referencias
+                return; // No hacer nada más, dejar que el navegador haga el scroll
+            }
+            // Si el movimiento excede el umbral en cualquier dirección, y no fue un scroll dominante
+            if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
+                isDragging = true; // Activar el modo arrastre
+                draggedRow.classList.add('dragging'); // Añadir clase visual
+                e.preventDefault(); // Ahora sí, prevenir el scroll
+            }
         }
 
         if (isDragging) {
-            e.preventDefault(); // Seguir previniendo el desplazamiento
+            e.preventDefault(); // Seguir previniendo el scroll mientras se arrastra
             const touchY = e.touches[0].clientY;
             const targetElement = document.elementFromPoint(e.touches[0].clientX, touchY);
 
@@ -176,31 +185,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             }
-            // Opcional: para mover visualmente la fila arrastrada
-            // draggedRow.style.transform = `translateY(${currentY - initialY}px)`;
         }
     }
 
     function handleTouchEnd() {
-        if (!draggedRow) return;
-
-        // Limpiar el estilo de transformación si se aplicó
-        // draggedRow.style.transform = '';
+        if (!draggedRow) return; // Si no hay fila arrastrada, salir
 
         draggedRow.classList.remove('dragging'); // Quitar clase de arrastre
 
         if (isDragging && currentDragTarget && currentDragTarget !== draggedRow) {
-            // Si estábamos arrastrando y hay un objetivo válido donde soltar
             const draggedIndex = parseInt(draggedRow.dataset.index);
             const targetIndex = parseInt(currentDragTarget.dataset.index);
 
             const [movedItem] = quoteItems.splice(draggedIndex, 1);
             quoteItems.splice(targetIndex, 0, movedItem);
             
-            renderTable(); // Re-renderizar la tabla para actualizar el orden y los event listeners
+            renderTable(); // Re-renderizar la tabla para actualizar el orden
         }
 
-        // Limpiar las referencias y banderas
+        // Limpiar todas las referencias y banderas
         if (currentDragTarget) {
             currentDragTarget.classList.remove('drop-target');
         }
@@ -315,9 +318,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const workbook = new ExcelJS.Workbook();
             const response = await fetch('template2.xlsx');
             const arrayBuffer = await response.arrayBuffer();
-            await workbook.xlsx.load(arrayBuffer);
+            const loadedWorkbook = await workbook.xlsx.load(arrayBuffer); // Asegúrate de que esto se resuelva correctamente
 
-            const worksheet = workbook.getWorksheet(1);
+            const worksheet = loadedWorkbook.getWorksheet(1); // Usa loadedWorkbook para obtener la hoja
 
             worksheet.getCell('B6').value = (document.getElementById('placa').value || '').toUpperCase();
             worksheet.getCell('B3').value = (document.getElementById('linea').value || '').toUpperCase();
@@ -330,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Ahora iteramos sobre el array quoteItems para llenar el Excel
             quoteItems.forEach((item) => {
-                worksheet.getCell(`A${startRow}`).value = item.descrip;
+                worksheet.getCell(`A${startRow}`).value = item.descrip; // Solo descrip aquí
                 worksheet.getCell(`B${startRow}`).value = item.cant;
 
                 startRow++;
@@ -424,5 +427,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     };
 
+    // Añadir el event listener al botón de copiar (asumiendo que su ID será 'copyTableBtn')
+    document.getElementById('copyTableBtn').addEventListener('click', copyTableData);
+
+    // --- FIN: Nueva función para copiar datos de la tabla ---
 
 });

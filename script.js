@@ -15,12 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Variable para almacenar la fila que se está arrastrando
     let draggedRow = null;
-    let initialY = 0; // Para el seguimiento del toque inicial
-    let initialX = 0; // Para el seguimiento del toque inicial (añadido para umbral)
-    let isDragging = false; // Bandera para indicar si el arrastre se ha activado
-    const DRAG_THRESHOLD = 10; // Umbral de píxeles para iniciar el arrastre (moviles)
-    const SCROLL_THRESHOLD_MULTIPLIER = 2; // Cuánto más vertical debe ser el movimiento para considerarse scroll
+    let longPressTimer = null; // Temporizador para el toque largo
+    const LONG_PRESS_DELAY = 400; // Milisegundos para un toque largo
+    let initialTouchY = 0; // Posición Y inicial del toque
+    let initialTouchX = 0; // Posición X inicial del toque
+    const MOVEMENT_TOLERANCE = 5; // Píxeles de tolerancia para considerar un toque "estacionario"
+
     let currentDragTarget = null; // Para la fila sobre la que se arrastra en móvil
+    let isTouchDragging = false; // Bandera para indicar si el arrastre táctil está activo
 
     // Función para renderizar la tabla desde el array quoteItems
     const renderTable = () => {
@@ -30,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
         quoteItems.forEach((item, index) => {
             const newRow = itemsTableBody.insertRow(); // Crea un <tr>
             newRow.dataset.index = index; // Guardar el índice en la fila para fácil referencia
-            newRow.draggable = true; // HACER LA FILA ARRASTRABLE
+            newRow.draggable = true; // HACER LA FILA ARRASTRABLE (para compatibilidad con ratón)
 
             // Añadir manejadores de eventos para Drag & Drop (RATÓN)
             newRow.addEventListener('dragstart', handleDragStart);
@@ -40,12 +42,12 @@ document.addEventListener('DOMContentLoaded', () => {
             newRow.addEventListener('dragend', handleDragEnd);
 
             // --- INICIO: Añadir manejadores de eventos para Drag & Drop (TÁCTIL) ---
-            // { passive: false } es crucial para preventDefault en touchmove, pero no en touchstart
-            newRow.addEventListener('touchstart', handleTouchStart, { passive: true }); // passive: true para permitir scroll inicial
-            newRow.addEventListener('touchmove', handleTouchMove, { passive: false }); // passive: false para permitir preventDefault
+            // Los eventos táctiles ahora usan la lógica de toque largo
+            newRow.addEventListener('touchstart', handleTouchStart);
+            newRow.addEventListener('touchmove', handleTouchMove);
             newRow.addEventListener('touchend', handleTouchEnd);
-            newRow.addEventListener('touchcancel', handleTouchEnd); // Por si el toque se interrumpe
-            // --- FIN: Añadir manejadores de eventos para Drag & Drop (TÁctIL) ---
+            newRow.addEventListener('touchcancel', handleTouchEnd); 
+            // --- FIN: Añadir manejadores de eventos para Drag & Drop (TÁCTIL) ---
 
             // Insertar celdas (<td>) en la fila con los datos
             newRow.insertCell().textContent = item.descrip;
@@ -70,10 +72,10 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- Funciones de Drag & Drop (RATÓN) ---
-
+    // (Estas permanecen igual, ya que funcionan bien en PC)
     function handleDragStart(e) {
-        draggedRow = this; // 'this' se refiere a la fila que se está arrastrando
-        e.dataTransfer.effectAllowed = 'move'; // Define el tipo de arrastre
+        draggedRow = this;
+        e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/html', this.outerHTML);
         setTimeout(() => {
             this.classList.add('dragging');
@@ -81,119 +83,156 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleDragOver(e) {
-        e.preventDefault(); // Permite soltar el elemento (por defecto, no se permite)
-        e.dataTransfer.dropEffect = 'move'; // Cambia el cursor a 'move'
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
         if (this !== draggedRow) {
             this.classList.add('drop-target');
         }
     }
 
     function handleDragLeave() {
-        this.classList.remove('drop-target'); // Quitar la clase si el arrastre sale de la fila
+        this.classList.remove('drop-target');
     }
 
     async function handleDrop(e) {
-        e.preventDefault(); // Prevenir el comportamiento por defecto
-
-        this.classList.remove('drop-target'); // Quitar la clase visual de destino
-
+        e.preventDefault();
+        this.classList.remove('drop-target');
         if (this === draggedRow) {
-            // Si la fila se soltó sobre sí misma, no hacer nada
             return;
         }
-
-        // Obtener los índices de la fila arrastrada y la fila de destino
         const draggedIndex = parseInt(draggedRow.dataset.index);
         const targetIndex = parseInt(this.dataset.index);
-
-        // Mover el elemento en el array quoteItems
-        const [movedItem] = quoteItems.splice(draggedIndex, 1); // Cortar el elemento arrastrado
-        quoteItems.splice(targetIndex, 0, movedItem); // Insertarlo en la nueva posición
-
-        renderTable(); // Volver a renderizar la tabla con el nuevo orden
+        const [movedItem] = quoteItems.splice(draggedIndex, 1);
+        quoteItems.splice(targetIndex, 0, movedItem);
+        renderTable();
     }
 
     function handleDragEnd() {
-        // Quitar la clase 'dragging' de la fila que se arrastró
         this.classList.remove('dragging');
-        // Quitar la clase 'drop-target' de cualquier fila que pudiera tenerla
         const dropTargets = document.querySelectorAll('#itemsTable tbody tr.drop-target');
         dropTargets.forEach(target => target.classList.remove('drop-target'));
-        
-        draggedRow = null; // Limpiar la referencia a la fila arrastrada
+        draggedRow = null;
     }
-
     // --- FIN: Funciones de Drag & Drop (RATÓN) ---
 
-    // --- INICIO: Funciones de Drag & Drop (TÁCTIL - con umbral de movimiento mejorado) ---
+    // --- INICIO: Funciones de Drag & Drop (TÁCTIL - con Toque Largo) ---
 
     function handleTouchStart(e) {
-        if (e.touches.length === 1) {
-            draggedRow = this;
-            initialY = e.touches[0].clientY;
-            initialX = e.touches[0].clientX;
-            isDragging = false; // Resetear la bandera
-            currentDragTarget = null; // Limpiar objetivo al inicio
-            
-            // NO llamar a e.preventDefault() aquí. Permitimos el scroll inicial.
+        if (e.touches.length !== 1) return; // Solo un dedo
+        
+        // Reiniciar cualquier temporizador existente
+        if (longPressTimer) {
+            clearTimeout(longPressTimer);
         }
+
+        draggedRow = this;
+        initialTouchY = e.touches[0].clientY;
+        initialTouchX = e.touches[0].clientX;
+        isTouchDragging = false; // Resetear la bandera de arrastre táctil
+
+        // Iniciar un temporizador para el toque largo
+        longPressTimer = setTimeout(() => {
+            // Si el dedo no se ha movido mucho, activar el arrastre
+            const currentY = e.touches[0].clientY;
+            const currentX = e.touches[0].clientX;
+            const deltaY = Math.abs(currentY - initialTouchY);
+            const deltaX = Math.abs(currentX - initialTouchX);
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+            if (distance < MOVEMENT_TOLERANCE) { // Si el movimiento es mínimo
+                isTouchDragging = true;
+                draggedRow.classList.add('dragging'); // Clase visual para indicar arrastre activo
+                e.preventDefault(); // Prevenir el scroll y la selección
+                // Opcional: vibración para indicar el inicio del arrastre
+                if (navigator.vibrate) {
+                    navigator.vibrate(50); 
+                }
+            } else {
+                // Si hubo mucho movimiento antes del toque largo, no es un arrastre.
+                handleTouchEnd(); // Limpiar el estado
+            }
+        }, LONG_PRESS_DELAY);
     }
 
     function handleTouchMove(e) {
-        if (!draggedRow) return;
+        // Si no estamos en modo de arrastre táctil, permitir el scroll normal
+        if (!isTouchDragging) {
+            // Si hay un temporizador activo y el dedo se ha movido significativamente, cancelarlo.
+            // Esto es para que un deslizamiento rápido no active el toque largo.
+            const currentY = e.touches[0].clientY;
+            const currentX = e.touches[0].clientX;
+            const deltaY = Math.abs(currentY - initialTouchY);
+            const deltaX = Math.abs(currentX - initialTouchX);
+            const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-        const currentY = e.touches[0].clientY;
-        const currentX = e.touches[0].clientX;
-
-        const deltaY = Math.abs(currentY - initialY);
-        const deltaX = Math.abs(currentX - initialX);
-
-        // Si aún no estamos arrastrando
-        if (!isDragging) {
-            // Si el movimiento vertical es mucho mayor que el horizontal, probablemente es un scroll
-            if (deltaY > DRAG_THRESHOLD && deltaY > deltaX * SCROLL_THRESHOLD_MULTIPLIER) {
-                // Es un scroll, no un arrastre. Abortar el posible arrastre.
-                handleTouchEnd(); // Llama a touchEnd para limpiar las referencias
-                return; // No hacer nada más, dejar que el navegador haga el scroll
+            if (longPressTimer && distance > MOVEMENT_TOLERANCE) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+                // No hay draggedRow, ya que no se activó el arrastre.
+                return; // Dejar que el navegador haga el scroll
             }
-            // Si el movimiento excede el umbral en cualquier dirección, y no fue un scroll dominante
-            if (deltaX > DRAG_THRESHOLD || deltaY > DRAG_THRESHOLD) {
-                isDragging = true; // Activar el modo arrastre
-                draggedRow.classList.add('dragging'); // Añadir clase visual
-                e.preventDefault(); // Ahora sí, prevenir el scroll
-            }
+            return; // Si no hay temporizador y no estamos arrastrando, seguir permitiendo scroll
         }
 
-        if (isDragging) {
-            e.preventDefault(); // Seguir previniendo el scroll mientras se arrastra
-            const touchY = e.touches[0].clientY;
-            const targetElement = document.elementFromPoint(e.touches[0].clientX, touchY);
+        // Si estamos en modo de arrastre táctil
+        e.preventDefault(); // Prevenir el desplazamiento de la página
 
-            let newDropTarget = null;
-            if (targetElement) {
-                newDropTarget = targetElement.closest('tr');
-                if (newDropTarget && newDropTarget.closest('#itemsTable tbody') && newDropTarget !== draggedRow) {
-                    if (currentDragTarget && currentDragTarget !== newDropTarget) {
-                        currentDragTarget.classList.remove('drop-target');
-                    }
-                    newDropTarget.classList.add('drop-target');
-                    currentDragTarget = newDropTarget;
-                } else {
-                    if (currentDragTarget) {
-                        currentDragTarget.classList.remove('drop-target');
-                        currentDragTarget = null;
-                    }
+        const touchY = e.touches[0].clientY;
+        const touchX = e.touches[0].clientX;
+        // console.log(`TouchMove - Y: ${touchY}, X: ${touchX}`); // Para depuración
+
+        // Usar elementFromPoint para encontrar la fila bajo el dedo
+        const targetElement = document.elementFromPoint(touchX, touchY);
+
+        let newDropTarget = null;
+        if (targetElement) {
+            newDropTarget = targetElement.closest('tr');
+            // Asegurarse de que el target es una fila de la tabla y no la fila que se arrastra
+            if (newDropTarget && newDropTarget.closest('#itemsTable tbody') && newDropTarget !== draggedRow) {
+                if (currentDragTarget && currentDragTarget !== newDropTarget) {
+                    currentDragTarget.classList.remove('drop-target');
+                }
+                newDropTarget.classList.add('drop-target');
+                currentDragTarget = newDropTarget;
+            } else {
+                // Si el elemento bajo el dedo no es una fila válida o es la misma, limpiar el target visual
+                if (currentDragTarget) {
+                    currentDragTarget.classList.remove('drop-target');
+                    currentDragTarget = null;
                 }
             }
         }
+        // Opcional: para mover visualmente la fila arrastrada (simulación)
+        // Puedes usar `transform` para hacer que la fila "siga" el dedo.
+        // draggedRow.style.position = 'absolute'; // o 'relative' y ajustar top/left
+        // draggedRow.style.zIndex = '1000'; // Asegurar que esté encima
+        // draggedRow.style.left = `${touchX - draggedRow.offsetWidth / 2}px`;
+        // draggedRow.style.top = `${touchY - draggedRow.offsetHeight / 2}px`;
     }
 
     function handleTouchEnd() {
-        if (!draggedRow) return; // Si no hay fila arrastrada, salir
+        // Siempre limpiar el temporizador al levantar el dedo
+        if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }
 
-        draggedRow.classList.remove('dragging'); // Quitar clase de arrastre
+        if (!isTouchDragging) {
+            // Si nunca entramos en modo arrastre, solo salir
+            draggedRow = null; // Asegurarse de limpiar por si se asignó en touchstart
+            return;
+        }
 
-        if (isDragging && currentDragTarget && currentDragTarget !== draggedRow) {
+        // Si estábamos arrastrando
+        if (draggedRow) {
+            draggedRow.classList.remove('dragging');
+            // draggedRow.style.position = ''; // Limpiar estilos si se aplicaron
+            // draggedRow.style.zIndex = '';
+            // draggedRow.style.left = '';
+            // draggedRow.style.top = '';
+        }
+
+        if (currentDragTarget && currentDragTarget !== draggedRow) {
             const draggedIndex = parseInt(draggedRow.dataset.index);
             const targetIndex = parseInt(currentDragTarget.dataset.index);
 
@@ -209,9 +248,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         draggedRow = null;
         currentDragTarget = null;
-        initialY = 0;
-        initialX = 0;
-        isDragging = false;
+        initialTouchY = 0;
+        initialTouchX = 0;
+        isTouchDragging = false;
     }
 
     // --- FIN: Funciones de Drag & Drop (TÁCTIL) ---

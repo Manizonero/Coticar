@@ -17,37 +17,32 @@ document.addEventListener('DOMContentLoaded', () => {
     let draggedRow = null;
     let longPressTimer = null; // Temporizador para el toque largo
     const LONG_PRESS_DELAY = 400; // Milisegundos para un toque largo
-    let initialTouchY = 0; // Posición Y inicial del toque
-    let initialTouchX = 0; // Posición X inicial del toque
-    const MOVEMENT_TOLERANCE = 5; // Píxeles de tolerancia para considerar un toque "estacionario"
+    let initialTouchY = 0; 
+    let initialTouchX = 0; 
+    const MOVEMENT_TOLERANCE = 5;
 
-    let currentDragTarget = null; // Para la fila sobre la que se arrastra en móvil
-    let isTouchDragging = false; // Bandera para indicar si el arrastre táctil está activo
+    let currentDragTarget = null; 
+    let isTouchDragging = false;
 
     // Función para renderizar la tabla desde el array quoteItems
     const renderTable = () => {
-        // Limpiar la tabla antes de renderizar
         itemsTableBody.innerHTML = '';
 
         quoteItems.forEach((item, index) => {
-            const newRow = itemsTableBody.insertRow(); // Crea un <tr>
-            newRow.dataset.index = index; // Guardar el índice en la fila para fácil referencia
-            newRow.draggable = true; // HACER LA FILA ARRASTRABLE (para compatibilidad con ratón)
+            const newRow = itemsTableBody.insertRow();
+            newRow.dataset.index = index; 
+            newRow.draggable = true;
 
-            // Añadir manejadores de eventos para Drag & Drop (RATÓN)
             newRow.addEventListener('dragstart', handleDragStart);
             newRow.addEventListener('dragover', handleDragOver);
             newRow.addEventListener('dragleave', handleDragLeave);
             newRow.addEventListener('drop', handleDrop);
             newRow.addEventListener('dragend', handleDragEnd);
 
-            // --- INICIO: Añadir manejadores de eventos para Drag & Drop (TÁCTIL) ---
-            // Los eventos táctiles ahora usan la lógica de toque largo
             newRow.addEventListener('touchstart', handleTouchStart);
             newRow.addEventListener('touchmove', handleTouchMove);
             newRow.addEventListener('touchend', handleTouchEnd);
             newRow.addEventListener('touchcancel', handleTouchEnd); 
-            // --- FIN: Añadir manejadores de eventos para Drag & Drop (TÁCTIL) ---
 
             // Insertar celdas (<td>) en la fila con los datos
             newRow.insertCell().textContent = item.descrip;
@@ -57,22 +52,18 @@ document.addEventListener('DOMContentLoaded', () => {
             newRow.insertCell().textContent = item.pint;
             newRow.insertCell().textContent = item.dat;
 
-            // Celda para el botón de eliminar
             const actionsCell = newRow.insertCell();
             const deleteButton = document.createElement('button');
             deleteButton.textContent = 'X';
             deleteButton.classList.add('delete-btn');
             deleteButton.addEventListener('click', () => {
-                // Eliminar el ítem del array quoteItems por su índice
                 quoteItems.splice(index, 1);
-                renderTable(); // Volver a renderizar la tabla
+                renderTable(); 
             });
             actionsCell.appendChild(deleteButton);
         });
     };
 
-    // --- Funciones de Drag & Drop (RATÓN) ---
-    // (Estas permanecen igual, ya que funcionan bien en PC)
     function handleDragStart(e) {
         draggedRow = this;
         e.dataTransfer.effectAllowed = 'move';
@@ -113,14 +104,10 @@ document.addEventListener('DOMContentLoaded', () => {
         dropTargets.forEach(target => target.classList.remove('drop-target'));
         draggedRow = null;
     }
-    // --- FIN: Funciones de Drag & Drop (RATÓN) ---
-
-    // --- INICIO: Funciones de Drag & Drop (TÁCTIL - con Toque Largo) ---
 
     function handleTouchStart(e) {
-        if (e.touches.length !== 1) return; // Solo un dedo
+        if (e.touches.length !== 1) return;
         
-        // Reiniciar cualquier temporizador existente
         if (longPressTimer) {
             clearTimeout(longPressTimer);
         }
@@ -128,37 +115,30 @@ document.addEventListener('DOMContentLoaded', () => {
         draggedRow = this;
         initialTouchY = e.touches[0].clientY;
         initialTouchX = e.touches[0].clientX;
-        isTouchDragging = false; // Resetear la bandera de arrastre táctil
+        isTouchDragging = false;
 
-        // Iniciar un temporizador para el toque largo
         longPressTimer = setTimeout(() => {
-            // Si el dedo no se ha movido mucho, activar el arrastre
             const currentY = e.touches[0].clientY;
             const currentX = e.touches[0].clientX;
             const deltaY = Math.abs(currentY - initialTouchY);
             const deltaX = Math.abs(currentX - initialTouchX);
             const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
-            if (distance < MOVEMENT_TOLERANCE) { // Si el movimiento es mínimo
+            if (distance < MOVEMENT_TOLERANCE) {
                 isTouchDragging = true;
-                draggedRow.classList.add('dragging'); // Clase visual para indicar arrastre activo
-                e.preventDefault(); // Prevenir el scroll y la selección
-                // Opcional: vibración para indicar el inicio del arrastre
+                draggedRow.classList.add('dragging');
+                e.preventDefault(); 
                 if (navigator.vibrate) {
                     navigator.vibrate(50); 
                 }
             } else {
-                // Si hubo mucho movimiento antes del toque largo, no es un arrastre.
-                handleTouchEnd(); // Limpiar el estado
+                handleTouchEnd(); 
             }
         }, LONG_PRESS_DELAY);
     }
 
     function handleTouchMove(e) {
-        // Si no estamos en modo de arrastre táctil, permitir el scroll normal
         if (!isTouchDragging) {
-            // Si hay un temporizador activo y el dedo se ha movido significativamente, cancelarlo.
-            // Esto es para que un deslizamiento rápido no active el toque largo.
             const currentY = e.touches[0].clientY;
             const currentX = e.touches[0].clientX;
             const deltaY = Math.abs(currentY - initialTouchY);
@@ -168,26 +148,20 @@ document.addEventListener('DOMContentLoaded', () => {
             if (longPressTimer && distance > MOVEMENT_TOLERANCE) {
                 clearTimeout(longPressTimer);
                 longPressTimer = null;
-                // No hay draggedRow, ya que no se activó el arrastre.
-                return; // Dejar que el navegador haga el scroll
+                return;
             }
-            return; // Si no hay temporizador y no estamos arrastrando, seguir permitiendo scroll
+            return;
         }
 
-        // Si estamos en modo de arrastre táctil
-        e.preventDefault(); // Prevenir el desplazamiento de la página
+        e.preventDefault();
 
         const touchY = e.touches[0].clientY;
         const touchX = e.touches[0].clientX;
-        // console.log(`TouchMove - Y: ${touchY}, X: ${touchX}`); // Para depuración
-
-        // Usar elementFromPoint para encontrar la fila bajo el dedo
         const targetElement = document.elementFromPoint(touchX, touchY);
 
         let newDropTarget = null;
         if (targetElement) {
             newDropTarget = targetElement.closest('tr');
-            // Asegurarse de que el target es una fila de la tabla y no la fila que se arrastra
             if (newDropTarget && newDropTarget.closest('#itemsTable tbody') && newDropTarget !== draggedRow) {
                 if (currentDragTarget && currentDragTarget !== newDropTarget) {
                     currentDragTarget.classList.remove('drop-target');
@@ -195,41 +169,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 newDropTarget.classList.add('drop-target');
                 currentDragTarget = newDropTarget;
             } else {
-                // Si el elemento bajo el dedo no es una fila válida o es la misma, limpiar el target visual
                 if (currentDragTarget) {
                     currentDragTarget.classList.remove('drop-target');
                     currentDragTarget = null;
                 }
             }
         }
-        // Opcional: para mover visualmente la fila arrastrada (simulación)
-        // Puedes usar `transform` para hacer que la fila "siga" el dedo.
-        // draggedRow.style.position = 'absolute'; // o 'relative' y ajustar top/left
-        // draggedRow.style.zIndex = '1000'; // Asegurar que esté encima
-        // draggedRow.style.left = `${touchX - draggedRow.offsetWidth / 2}px`;
-        // draggedRow.style.top = `${touchY - draggedRow.offsetHeight / 2}px`;
+        
     }
 
     function handleTouchEnd() {
-        // Siempre limpiar el temporizador al levantar el dedo
         if (longPressTimer) {
             clearTimeout(longPressTimer);
             longPressTimer = null;
         }
 
         if (!isTouchDragging) {
-            // Si nunca entramos en modo arrastre, solo salir
-            draggedRow = null; // Asegurarse de limpiar por si se asignó en touchstart
+            draggedRow = null; 
             return;
         }
 
-        // Si estábamos arrastrando
         if (draggedRow) {
             draggedRow.classList.remove('dragging');
-            // draggedRow.style.position = ''; // Limpiar estilos si se aplicaron
-            // draggedRow.style.zIndex = '';
-            // draggedRow.style.left = '';
-            // draggedRow.style.top = '';
         }
 
         if (currentDragTarget && currentDragTarget !== draggedRow) {
@@ -239,10 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const [movedItem] = quoteItems.splice(draggedIndex, 1);
             quoteItems.splice(targetIndex, 0, movedItem);
             
-            renderTable(); // Re-renderizar la tabla para actualizar el orden
+            renderTable();
         }
 
-        // Limpiar todas las referencias y banderas
         if (currentDragTarget) {
             currentDragTarget.classList.remove('drop-target');
         }
@@ -253,10 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
         isTouchDragging = false;
     }
 
-    // --- FIN: Funciones de Drag & Drop (TÁCTIL) ---
-
-
-    // Event listener para el botón "AGREGAR ITEM"
     addItemButton.addEventListener('click', () => {
         const descrip = descripInput.value.trim();
         const cant = cantInput.value.trim();
@@ -279,10 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
             dat
         };
 
-        quoteItems.push(newItem); // Añadir el nuevo ítem al array
-        renderTable(); // Renderizar la tabla con el nuevo ítem
-
-        // Limpiar los inputs después de agregar el ítem
+        quoteItems.push(newItem); 
+        renderTable(); 
         descripInput.value = '';
         cantInput.value = '';
         dymInput.value = '';
@@ -335,13 +289,9 @@ document.addEventListener('DOMContentLoaded', () => {
             a.download = `${placa}.xlsx`.toUpperCase();
             a.click();
             URL.revokeObjectURL(url);
-            alert('¡Archivo Excel generado correctamente!');
         } catch (error) {
-            console.error("Error al generar el archivo Excel:", error);
-            alert('Error al generar el archivo Excel. Consulta la consola para más detalles.');
         }
     });
-
 
     /* --- Exportar Excel de Suzuki --- */
     document.getElementById('crearex').addEventListener('click', async () => {
@@ -388,10 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
             a.download = `${placa} Cotizacion Repuestos Suzuki.xlsx`.toUpperCase();
             a.click();
             URL.revokeObjectURL(url);
-            alert('¡Archivo Excel de Suzuki generado correctamente!');
         } catch (error) {
-            console.error("Error al generar el archivo Excel de Suzuki:", error);
-            alert('Error al generar el archivo Excel de Suzuki. Consulta la consola para más detalles.');
         }
     });
 
@@ -419,56 +366,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     marcaInput.addEventListener('input', toggleFields);
     toggleFields(); // Llamar al inicio para establecer el estado inicial
-
-
-    // --- INICIO: Nueva función para copiar datos de la tabla ---
-
-    /**
-     * Copia los datos de la tabla (excluyendo la columna de acciones) al portapapeles
-     * en un formato de texto simple (tabulado o CSV).
-     */
-    const copyTableData = () => {
-        if (quoteItems.length === 0) {
-            alert('No hay ítems en la tabla para copiar.');
-            return;
-        }
-
-        let clipboardText = '';
-
-        // Obtener los encabezados de la tabla (excepto la última columna de acciones si existe)
-        const headers = Array.from(document.querySelectorAll('#itemsTable thead th'))
-                             .slice(0, -1) // Excluir la última columna (acciones)
-                             .map(th => th.textContent.trim());
-        clipboardText += headers.join('\t') + '\n'; // Encabezados separados por tabulaciones
-
-        // Recorrer los datos de quoteItems
-        quoteItems.forEach(item => {
-            // Asegurarse de que el orden de las propiedades coincide con los encabezados
-            const rowData = [
-                item.descrip,
-                item.cant,
-                item.dym,
-                item.estado,
-                item.pint,
-                item.dat
-            ];
-            clipboardText += rowData.join('\t') + '\n'; // Filas separadas por tabulaciones
-        });
-
-        // Intentar copiar al portapapeles
-        navigator.clipboard.writeText(clipboardText)
-            .then(() => {
-                alert('Datos de la tabla copiados al portapapeles.');
-            })
-            .catch(err => {
-                console.error('Error al copiar al portapapeles:', err);
-                alert('No se pudieron copiar los datos de la tabla. Por favor, inténtalo manualmente.');
-            });
-    };
-
-    // Añadir el event listener al botón de copiar (asumiendo que su ID será 'copyTableBtn')
-    document.getElementById('copyTableBtn').addEventListener('click', copyTableData);
-
-    // --- FIN: Nueva función para copiar datos de la tabla ---
 
 });

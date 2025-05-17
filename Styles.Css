@@ -248,7 +248,7 @@ label {
 
 /* Estilos para el botón "AGREGAR ITEM" */
 .add-item-button {
-    background-color: #9ee09cf6;
+    background-color: #73859cf6;
     color: white;
     padding: 06px 20px;
     border-color: #1815e2;
@@ -260,7 +260,7 @@ label {
 }
 
 .add-item-button:hover {
-    background-color: #61688d; /* Un tono más claro del azul */
+    background-color: #7daf84; /* Un tono más claro del azul */
 }
 
 /* Título de la lista de ítems */
@@ -309,10 +309,6 @@ label {
     text-transform: uppercase;
     text-align: center; /* ¡NUEVO: Centrar el texto de los encabezados! */
 }
-
-/* --- AQUÍ ES DONDE AJUSTAS LOS ANCHOS DE CADA COLUMNA --- */
-/* Puedes cambiar los porcentajes. La suma de los porcentajes debe ser igual o menor al 100%
-   del ancho de la tabla (#itemsTable que está al 100% del .table-container). */
 
 #itemsTable thead th:nth-child(1) { /* Columna: Descripción (incluye icono eliminar) */
     width: 40%; /* Ajusta este valor según la longitud típica de tu descripción y el espacio para el icono */
@@ -382,8 +378,6 @@ label {
     margin-bottom: 50px;
 }
 
-/* --- Nuevos estilos para Drag-and-Drop --- */
-
 /* Estilo para las filas arrastrables (la que se está arrastrando) */
 #itemsTable tbody tr.dragging {
     opacity: 0.6;
@@ -431,7 +425,6 @@ label {
     border: 10px double #dd3b3bab;
     border-radius: 280px;
 }
-
 
 
 footer{

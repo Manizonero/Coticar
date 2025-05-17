@@ -165,13 +165,13 @@ h2 {
 .estado {
     display: flex;
     flex-direction: column;
-    width: 28%;
+    width: 32%;
 }
 
 .pint {
     display: flex;
     flex-direction: column;
-    width: 20%;
+    width: 24%;
     margin-left: 4%;
 }
 
@@ -183,7 +183,7 @@ h2 {
 }
 
 ::placeholder{
-    color: #ffffff;
+    color: #000000;
     font-size: 16px;
 }
 
@@ -196,7 +196,7 @@ input {
     margin-bottom: 1px;
     text-align: center;
     font-size: 16px;
-    color: #f8f8f8; /* Aseguramos que el texto del input sea blanco */
+    color: #000000; /* Aseguramos que el texto del input sea blanco */
 }
 
 /* Modificaciones aquí para el select */
@@ -208,7 +208,7 @@ select {
     margin-bottom: 1px;
     text-align: center;
     font-size: 16px;
-    color: #f8f8f8; /* **Importante: Color del texto del select cuando no está desplegado** */
+    color: #000000; /* **Importante: Color del texto del select cuando no está desplegado** */
     /* Apariencia para que la flecha del select se vea mejor en algunos navegadores */
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -224,7 +224,7 @@ select {
 /* IMPORTANTE: ESTO ES PARA LAS OPCIONES DEL SELECT CUANDO SE DESPLIEGAN */
 select option {
     background-color: #8a99ecf6; /* Color de fondo de las opciones */
-    color: #f8f8f8; /* Color del texto de las opciones para que sea blanco */
+    color: #000000; /* Color del texto de las opciones para que sea blanco */
 }
 
 
@@ -248,7 +248,7 @@ label {
 
 /* Estilos para el botón "AGREGAR ITEM" */
 .add-item-button {
-    background-color: #7e85ddf6;
+    background-color: #9ee09cf6;
     color: white;
     padding: 06px 20px;
     border-color: #1815e2;
